@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
 
-const SERVER_URL = `http://${window.location.hostname}:5000`;
+const SERVER_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
 
 export function useMatchState() {
   const [matchState, setMatchState] = useState(null);
