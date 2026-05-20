@@ -67,6 +67,10 @@ function broadcastUpdate() {
 }
 
 // API Routes
+app.get('/', (req, res) => {
+  res.send('The Hundred Cricket Scoring & Broadcast Graphics API Server is running.');
+});
+
 app.get('/api/match', (req, res) => {
   res.json(matchState);
 });
