@@ -34,12 +34,28 @@ export default function App() {
             <ShieldAlert size={28} /> Connection Offline
           </h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-            Awaiting connection to the local scoring backend server at <code>localhost:5000</code>.
+            Awaiting connection to the scoring backend server...
           </p>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <div className="btn-run" style={{ width: '40px', height: '40px', animation: 'spin 1.5s linear infinite', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--accent)', borderRadius: '50%' }}></div>
           </div>
         </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Show a loading screen while synchronizing with the backend
+  if (!matchState) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '1rem', background: '#0a0f1d', color: '#fff' }}>
+        <div className="btn-run" style={{ width: '40px', height: '40px', animation: 'spin 1.5s linear infinite', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--accent)', borderRadius: '50%' }}></div>
+        <p style={{ color: 'var(--text-secondary)' }}>Synchronizing match state...</p>
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
