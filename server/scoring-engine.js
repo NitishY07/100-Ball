@@ -217,6 +217,12 @@ export class HundredScoringEngine {
   }
 
   static handleBall(state, innings, ballData) {
+    // Clear previous ball's automated alerts
+    state.gfxMessage = null;
+    state.psdLayers.boundaryAlert = false;
+    state.psdLayers.wicketAlert = false;
+    state.psdLayers.milestoneAlert = false;
+
     const { runsBat, extraType, extraRuns = 0, wicketType, fielderId } = ballData;
     
     const strikerId = innings.currentBatsmen.striker;
