@@ -1,10 +1,58 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, Layers, Sparkles, Image, Tv, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, Layers, Sparkles, Image, Tv, CheckCircle, Save, UploadCloud } from 'lucide-react';
 
 export function OperatorPanel({ matchState, triggerGfxAction }) {
   const [customMsg, setCustomMsg] = useState('');
   const [selectedPlayerCard, setSelectedPlayerCard] = useState('');
   const [activeTab, setActiveTab] = useState('templates');
+  const [logoA, setLogoA] = useState('');
+  const [logoB, setLogoB] = useState('');
+
+  useEffect(() => {
+    if (matchState?.teamA) setLogoA(matchState.teamA.logo || '');
+    if (matchState?.teamB) setLogoB(matchState.teamB.logo || '');
+  }, [matchState?.teamA?.logo, matchState?.teamB?.logo]);
+
+  const [uploadingA, setUploadingA] = useState(false);
+  const [uploadingB, setUploadingB] = useState(false);
+
+  const handleFileUpload = async (teamKey, file) => {
+    if (!file) return;
+    
+    const setUploading = teamKey === 'teamA' ? setUploadingA : setUploadingB;
+    const setLogo = teamKey === 'teamA' ? setLogoA : setLogoB;
+    
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target.result;
+        const res = await fetch('http://localhost:5000/api/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            base64Data
+          })
+        });
+        const data = await res.json();
+        if (data.url) {
+          setLogo(data.url);
+          handleUpdateTeamDetails(teamKey, { logo: data.url });
+        } else {
+          alert('Upload failed: ' + (data.error || 'Unknown error'));
+        }
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      alert('Upload failed');
+      setUploading(false);
+    }
+  };
 
   if (!matchState) return <div>Loading match data...</div>;
 
@@ -13,6 +61,14 @@ export function OperatorPanel({ matchState, triggerGfxAction }) {
   const battingTeamKey = currentInningsData?.battingTeam;
   const battingTeam = battingTeamKey === 'teamA' ? matchState.teamA : matchState.teamB;
   const bowlingTeam = battingTeamKey === 'teamA' ? matchState.teamB : matchState.teamA;
+
+  const handleUpdateTeamDetails = (teamKey, updates) => {
+    triggerGfxAction({
+      type: 'UPDATE_TEAM_DETAILS',
+      teamKey,
+      updates
+    });
+  };
 
   const toggleLayer = (layer, playerCardData = undefined) => {
     triggerGfxAction({
@@ -46,15 +102,22 @@ export function OperatorPanel({ matchState, triggerGfxAction }) {
   };
 
   const handlePlayerCardToggle = () => {
-    if (!selectedPlayerCard) return;
-    
-    // Find player data in batting or bowling lists
-    let playerObj = currentInningsData?.battingPerformance.find(p => p.playerId === selectedPlayerCard);
-    if (!playerObj) {
-      playerObj = currentInningsData?.bowlingPerformance.find(p => p.playerId === selectedPlayerCard);
+    if (psdLayers.activePlayerCard) {
+      // If it is already active, hide it
+      toggleLayer('activePlayerCard', null);
+    } else {
+      // Otherwise show the selected player
+      if (!selectedPlayerCard) return;
+      
+      let playerObj = currentInningsData?.battingPerformance.find(p => p.playerId === selectedPlayerCard);
+      if (!playerObj) {
+        playerObj = currentInningsData?.bowlingPerformance.find(p => p.playerId === selectedPlayerCard);
+      }
+      
+      if (playerObj) {
+        toggleLayer('activePlayerCard', playerObj);
+      }
     }
-    
-    toggleLayer('activePlayerCard', playerObj || null);
   };
 
   // List of themes
@@ -152,6 +215,15 @@ export function OperatorPanel({ matchState, triggerGfxAction }) {
                         <span>End of Innings / Match Summary</span>
                         {psdLayers.matchSummary ? <Eye size={18} /> : <EyeOff size={18} />}
                       </button>
+
+                      <button 
+                        onClick={() => triggerGfxAction({ type: 'TOGGLE_POWERPLAY' })}
+                        className={`btn ${currentInningsData?.powerplayActive ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ justifyContent: 'space-between', padding: '0.75rem 1.25rem', borderLeft: '4px solid #ffcc00' }}
+                      >
+                        <span>Toggle Powerplay (P1 Overlay)</span>
+                        <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>{currentInningsData?.powerplayActive ? 'ON' : 'OFF'}</span>
+                      </button>
                     </div>
                   </div>
 
@@ -243,42 +315,204 @@ export function OperatorPanel({ matchState, triggerGfxAction }) {
 
               {/* Tab 3: Themes & Branding */}
               {activeTab === 'themes' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                  {/* Themes */}
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Color Themes (Official Franchise)</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                      {themesList.map((t) => (
-                        <button 
-                          key={t.id}
-                          onClick={() => handleSetTheme(t.id)}
-                          className={`btn ${theme === t.id ? 'btn-primary' : 'btn-secondary'}`}
-                          style={{ fontSize: '0.85rem', padding: '0.5rem 0.25rem' }}
-                        >
-                          {t.name}
-                        </button>
-                      ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    {/* Themes */}
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Color Themes (Official Franchise)</h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        {themesList.map((t) => (
+                          <button 
+                            key={t.id}
+                            onClick={() => handleSetTheme(t.id)}
+                            className={`btn ${theme === t.id ? 'btn-primary' : 'btn-secondary'}`}
+                            style={{ fontSize: '0.85rem', padding: '0.5rem 0.25rem' }}
+                          >
+                            {t.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Sponsors & Commercials */}
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Commercial & Sponsors</h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                        Trigger live sponsor watermarks or full-frame commercial panels during boundary breaks.
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {sponsors.map(sp => (
+                          <button 
+                            key={sp.id}
+                            onClick={() => handleSetSponsor(sp.id)}
+                            className={`btn ${activeSponsor === sp.id ? 'btn-primary' : 'btn-secondary'}`}
+                            style={{ justifyContent: 'space-between' }}
+                          >
+                            <span>{sp.logo} {sp.name}</span>
+                            {activeSponsor === sp.id ? <CheckCircle size={16} /> : null}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Sponsors & Commercials */}
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Commercial & Sponsors</h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                      Trigger live sponsor watermarks or full-frame commercial panels during boundary breaks.
-                    </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      {sponsors.map(sp => (
-                        <button 
-                          key={sp.id}
-                          onClick={() => handleSetSponsor(sp.id)}
-                          className={`btn ${activeSponsor === sp.id ? 'btn-primary' : 'btn-secondary'}`}
-                          style={{ justifyContent: 'space-between' }}
-                        >
-                          <span>{sp.logo} {sp.name}</span>
-                          {activeSponsor === sp.id ? <CheckCircle size={16} /> : null}
-                        </button>
-                      ))}
+                  {/* Team Branding & Logos */}
+                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1.2rem', color: 'var(--accent-light)' }}>Team Branding & Logo Settings</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                      {/* Team A Branding */}
+                      <div className="glass" style={{ padding: '1.25rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.01)' }}>
+                        <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: matchState.teamA.color }}></span>
+                          {matchState.teamA.name} ({matchState.teamA.shortName}) Details
+                        </h4>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          <div>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Logo URL</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <input 
+                                type="text"
+                                value={logoA}
+                                onChange={e => setLogoA(e.target.value)}
+                                placeholder="https://example.com/logo-a.png"
+                                style={{ flex: 1, padding: '0.4rem', borderRadius: '0.25rem', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'white', fontSize: '0.85rem' }}
+                              />
+                              <button 
+                                onClick={() => handleUpdateTeamDetails('teamA', { logo: logoA })}
+                                className="btn btn-primary"
+                                style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                              >
+                                <Save size={14} /> Apply
+                              </button>
+                              <label className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.4rem 0.75rem', fontSize: '0.85rem', cursor: 'pointer', margin: 0 }}>
+                                <UploadCloud size={14} />
+                                {uploadingA ? '...' : 'Upload'}
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  onChange={e => handleFileUpload('teamA', e.target.files[0])}
+                                  style={{ display: 'none' }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                          
+                          {/* Logo presets */}
+                          <div>
+                            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Preset Logos</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                              <button 
+                                onClick={() => {
+                                  setLogoA('https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/Southern_Brave_logo.svg/200px-Southern_Brave_logo.svg.png');
+                                  handleUpdateTeamDetails('teamA', { logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/Southern_Brave_logo.svg/200px-Southern_Brave_logo.svg.png' });
+                                }}
+                                className="btn btn-secondary"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Southern Brave
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setLogoA('https://upload.wikimedia.org/wikipedia/en/thumb/c/c5/Sri_Lanka_Cricket_logo.svg/200px-Sri_Lanka_Cricket_logo.svg.png');
+                                  handleUpdateTeamDetails('teamA', { logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c5/Sri_Lanka_Cricket_logo.svg/200px-Sri_Lanka_Cricket_logo.svg.png' });
+                                }}
+                                className="btn btn-secondary"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Sri Lanka
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setLogoA('');
+                                  handleUpdateTeamDetails('teamA', { logo: '' });
+                                }}
+                                className="btn btn-secondary"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Team B Branding */}
+                      <div className="glass" style={{ padding: '1.25rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.01)' }}>
+                        <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: matchState.teamB.color }}></span>
+                          {matchState.teamB.name} ({matchState.teamB.shortName}) Details
+                        </h4>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          <div>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Logo URL</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <input 
+                                type="text"
+                                value={logoB}
+                                onChange={e => setLogoB(e.target.value)}
+                                placeholder="https://example.com/logo-b.png"
+                                style={{ flex: 1, padding: '0.4rem', borderRadius: '0.25rem', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'white', fontSize: '0.85rem' }}
+                              />
+                              <button 
+                                onClick={() => handleUpdateTeamDetails('teamB', { logo: logoB })}
+                                className="btn btn-primary"
+                                style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                              >
+                                <Save size={14} /> Apply
+                              </button>
+                              <label className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.4rem 0.75rem', fontSize: '0.85rem', cursor: 'pointer', margin: 0 }}>
+                                <UploadCloud size={14} />
+                                {uploadingB ? '...' : 'Upload'}
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  onChange={e => handleFileUpload('teamB', e.target.files[0])}
+                                  style={{ display: 'none' }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                          
+                          {/* Logo presets */}
+                          <div>
+                            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Preset Logos</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                              <button 
+                                onClick={() => {
+                                  setLogoB('https://upload.wikimedia.org/wikipedia/en/thumb/f/f6/Trent_Rockets_logo.svg/200px-Trent_Rockets_logo.svg.png');
+                                  handleUpdateTeamDetails('teamB', { logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f6/Trent_Rockets_logo.svg/200px-Trent_Rockets_logo.svg.png' });
+                                }}
+                                className="btn btn-secondary"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Trent Rockets
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setLogoB('https://upload.wikimedia.org/wikipedia/en/thumb/c/c5/Sri_Lanka_Cricket_logo.svg/200px-Sri_Lanka_Cricket_logo.svg.png');
+                                  handleUpdateTeamDetails('teamB', { logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c5/Sri_Lanka_Cricket_logo.svg/200px-Sri_Lanka_Cricket_logo.svg.png' });
+                                }}
+                                className="btn btn-secondary"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Sri Lanka
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setLogoB('');
+                                  handleUpdateTeamDetails('teamB', { logo: '' });
+                                }}
+                                className="btn btn-secondary"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

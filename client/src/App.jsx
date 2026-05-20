@@ -5,21 +5,34 @@ import { ScorerPanel } from './views/ScorerPanel';
 import { OperatorPanel } from './views/OperatorPanel';
 import { OverlayScreen } from './views/OverlayScreen';
 import { PublicView } from './views/PublicView';
-import { Tv, Award, PlayCircle, BarChart3, Settings, ShieldAlert } from 'lucide-react';
+import { DashboardView } from './views/DashboardView';
+import { TopNavBar } from './components/TopNavBar';
+import { Award, ShieldAlert } from 'lucide-react';
 
 export default function App() {
   const { matchState, connected, sendAction, triggerGfxAction, undo, redo, reset } = useMatchState();
-  const [path, setPath] = useState(window.location.hash.slice(1) || '/');
+  const [path, setPath] = useState(window.location.hash.slice(1) || '/dashboard');
 
   // Sync path on hash change
   useEffect(() => {
     const handleHashChange = () => {
-      setPath(window.location.hash.slice(1) || '/');
+      setPath(window.location.hash.slice(1) || '/dashboard');
     };
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Dynamically set transparent background for OBS overlay path
+  useEffect(() => {
+    if (path === '/overlay') {
+      document.body.style.backgroundColor = 'transparent';
+      document.body.style.background = 'transparent';
+    } else {
+      document.body.style.backgroundColor = '';
+      document.body.style.background = '';
+    }
+  }, [path]);
 
   const navigate = (newPath) => {
     window.location.hash = newPath;
@@ -78,69 +91,21 @@ export default function App() {
     );
   }
 
-  // Regular dashboards (with sidebar layout)
-  return (
-    <div className="app-container">
-      {/* Sidebar Navigation */}
-      <div className="sidebar">
-        <div className="brand">
-          <div className="brand-logo">100-GFX</div>
-        </div>
-        
-        <ul className="nav-links">
-          <li>
-            <div 
-              onClick={() => navigate('/')} 
-              className={`nav-link ${path === '/' ? 'active' : ''}`}
-            >
-              <Settings size={20} />
-              <span>Match Setup</span>
-            </div>
-          </li>
-          {matchState?.status !== 'setup' && (
-            <>
-              <li>
-                <div 
-                  onClick={() => navigate('/scorer')} 
-                  className={`nav-link ${path === '/scorer' ? 'active' : ''}`}
-                >
-                  <PlayCircle size={20} />
-                  <span>Scorer Console</span>
-                </div>
-              </li>
-              <li>
-                <div 
-                  onClick={() => navigate('/operator')} 
-                  className={`nav-link ${path === '/operator' ? 'active' : ''}`}
-                >
-                  <Tv size={20} />
-                  <span>Graphics Operator</span>
-                </div>
-              </li>
-            </>
-          )}
-        </ul>
-
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <button 
-            onClick={() => window.open('/#/overlay', '_blank')}
-            className="btn btn-secondary" 
-            style={{ width: '100%', fontSize: '0.85rem' }}
-          >
-            <Tv size={14} /> Open Live GFX
-          </button>
-          <button 
-            onClick={() => window.open('/#/public', '_blank')}
-            className="btn btn-secondary" 
-            style={{ width: '100%', fontSize: '0.85rem' }}
-          >
-            <BarChart3 size={14} /> Fan Scorecard
-          </button>
-        </div>
+  // Matches Dashboard
+  if (path === '/dashboard') {
+    return (
+      <div style={{ background: '#0a0f1d', minHeight: '100vh', color: '#fff' }}>
+        <DashboardView />
       </div>
+    );
+  }
 
-      {/* Main Panel Content */}
-      <div className="main-content">
+  // Inside Active Match views with sticky TopNavBar
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#0a0f1d', color: '#fff' }}>
+      <TopNavBar matchState={matchState} />
+      
+      <div style={{ flex: 1, padding: '0 1.5rem 2.5rem 1.5rem', overflowY: 'auto' }}>
         {path === '/' && (
           matchState?.status === 'setup' ? (
             <SetupScreen sendAction={sendAction} />

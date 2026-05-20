@@ -15,5 +15,12 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "active-match.json",
+      "matches/**",
+      "uploads/**"
+    ]
   }
 }

@@ -47,6 +47,8 @@ export function ScorerPanel({ matchState, sendAction, undo, redo, reset }) {
         handleBallClick(1, 'bye');
       } else if (e.key === 'l' || e.key === 'L') {
         handleBallClick(1, 'leg_bye');
+      } else if (e.key === 'p' || e.key === 'P') {
+        sendAction({ type: 'TOGGLE_POWERPLAY' });
       } else if (e.key === 'u' || e.key === 'U') {
         undo();
       } else if (e.key === 'r' || e.key === 'R') {
@@ -149,6 +151,23 @@ export function ScorerPanel({ matchState, sendAction, undo, redo, reset }) {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button onClick={undo} className="btn btn-secondary" title="Undo (U)"><Undo2 size={18} /> Undo</button>
           <button onClick={redo} className="btn btn-secondary" title="Redo (R)"><Redo2 size={18} /> Redo</button>
+          <button 
+            onClick={() => sendAction({ type: 'TOGGLE_POWERPLAY' })} 
+            className={`btn ${innings.powerplayActive ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ fontWeight: 700 }}
+            title="Toggle Powerplay (P)"
+          >
+            Powerplay: {innings.powerplayActive ? 'ON' : 'OFF'}
+          </button>
+          {matchState.status === 'innings_break' && (
+            <button 
+              onClick={() => { if(confirm("Are you ready to start the 2nd Innings?")) sendAction({ type: 'START_INNINGS2' }); }} 
+              className="btn btn-primary"
+              style={{ background: '#7c3aed', color: '#fff', border: 'none' }}
+            >
+              Start 2nd Innings
+            </button>
+          )}
           <button onClick={() => setShowDlsModal(true)} className="btn btn-secondary" title="Rain / DLS Interruptions"><Settings size={18} /> DLS</button>
           <button onClick={() => { if(confirm("Are you sure you want to reset the match?")) reset(); }} className="btn btn-danger"><RotateCcw size={18} /> Reset</button>
         </div>
@@ -211,6 +230,29 @@ export function ScorerPanel({ matchState, sendAction, undo, redo, reset }) {
                       <span>4s/6s: {striker.fours}/{striker.sixes}</span>
                       <span>SR: {striker.ballsFaced > 0 ? ((striker.runs / striker.ballsFaced) * 100).toFixed(1) : '0.0'}</span>
                     </div>
+
+                    {innings.battingPerformance.filter(p => p.howOut === 'did_not_bat').length > 0 && (
+                      <div style={{ marginTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.5rem' }}>
+                        <select 
+                          value=""
+                          onChange={(e) => {
+                            if (e.target.value && confirm(`Retire ${striker.name} and replace with ${innings.battingPerformance.find(p => p.playerId === e.target.value)?.name}?`)) {
+                              sendAction({
+                                type: 'RETIRE_BATSMAN',
+                                batsmanId: striker.playerId,
+                                newPlayerId: e.target.value
+                              });
+                            }
+                          }}
+                          style={{ width: '100%', padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.5)', color: 'var(--text-secondary)' }}
+                        >
+                          <option value="">⚙️ Retire / Change...</option>
+                          {innings.battingPerformance.filter(p => p.howOut === 'did_not_bat').map(p => (
+                            <option key={p.playerId} value={p.playerId}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div style={{ color: 'var(--text-secondary)' }}>No Striker</div>
@@ -230,11 +272,44 @@ export function ScorerPanel({ matchState, sendAction, undo, redo, reset }) {
                       <span>4s/6s: {nonStriker.fours}/{nonStriker.sixes}</span>
                       <span>SR: {nonStriker.ballsFaced > 0 ? ((nonStriker.runs / nonStriker.ballsFaced) * 100).toFixed(1) : '0.0'}</span>
                     </div>
+
+                    {innings.battingPerformance.filter(p => p.howOut === 'did_not_bat').length > 0 && (
+                      <div style={{ marginTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.5rem' }}>
+                        <select 
+                          value=""
+                          onChange={(e) => {
+                            if (e.target.value && confirm(`Retire ${nonStriker.name} and replace with ${innings.battingPerformance.find(p => p.playerId === e.target.value)?.name}?`)) {
+                              sendAction({
+                                type: 'RETIRE_BATSMAN',
+                                batsmanId: nonStriker.playerId,
+                                newPlayerId: e.target.value
+                              });
+                            }
+                          }}
+                          style={{ width: '100%', padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.5)', color: 'var(--text-secondary)' }}
+                        >
+                          <option value="">⚙️ Retire / Change...</option>
+                          {innings.battingPerformance.filter(p => p.howOut === 'did_not_bat').map(p => (
+                            <option key={p.playerId} value={p.playerId}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div style={{ color: 'var(--text-secondary)' }}>No Batter</div>
                 )}
               </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+              <button 
+                onClick={() => sendAction({ type: 'SWAP_STRIKE' })}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.85rem', padding: '0.4rem 1.25rem', width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+              >
+                ⇄ Swap Strike / Rotate Batsmen
+              </button>
             </div>
           </div>
 

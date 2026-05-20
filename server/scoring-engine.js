@@ -13,6 +13,7 @@ export class HundredScoringEngine {
       name: config?.teamAName || 'Southern Brave',
       shortName: config?.teamAShort || 'SOB',
       color: config?.teamAColor || '#1c3c54',
+      logo: config?.teamALogo || '',
       squad: config?.teamASquad || defaultSquad('A')
     };
 
@@ -20,6 +21,7 @@ export class HundredScoringEngine {
       name: config?.teamBName || 'Trent Rockets',
       shortName: config?.teamBShort || 'TRT',
       color: config?.teamBColor || '#ffcc00',
+      logo: config?.teamBLogo || '',
       squad: config?.teamBSquad || defaultSquad('B')
     };
 
@@ -81,6 +83,7 @@ export class HundredScoringEngine {
         activePlayerCard: null // Holds player data for individual highlight
       },
       gfxMessage: null, // Custom alert message (milestones/boundaries)
+      gfxMessageId: 0,
       undoStack: [],
       redoStack: []
     };
@@ -149,7 +152,8 @@ export class HundredScoringEngine {
         balls: 0,
         extras: 0
       },
-      partnerships: []
+      partnerships: [],
+      powerplayActive: true
     };
   }
 
@@ -189,9 +193,14 @@ export class HundredScoringEngine {
         }
         break;
       case 'TOGGLE_PSD_LAYER':
-        state.psdLayers[action.layer] = !state.psdLayers[action.layer];
-        if (action.playerCardData !== undefined) {
-          state.psdLayers.activePlayerCard = action.playerCardData;
+        if (action.layer === 'activePlayerCard') {
+          if (action.playerCardData !== undefined) {
+            state.psdLayers.activePlayerCard = action.playerCardData;
+          } else {
+            state.psdLayers.activePlayerCard = state.psdLayers.activePlayerCard ? null : false;
+          }
+        } else {
+          state.psdLayers[action.layer] = !state.psdLayers[action.layer];
         }
         break;
       case 'SET_THEME':
@@ -202,9 +211,50 @@ export class HundredScoringEngine {
         break;
       case 'SET_GFX_MESSAGE':
         state.gfxMessage = action.message;
+        if (action.message) {
+          state.gfxMessageId = (state.gfxMessageId || 0) + 1;
+        }
         break;
       case 'SUPER_OVER':
         this.setupSuperOver(state);
+        break;
+      case 'SWAP_STRIKE':
+        if (innings.currentBatsmen.striker && innings.currentBatsmen.nonStriker) {
+          const temp = innings.currentBatsmen.striker;
+          innings.currentBatsmen.striker = innings.currentBatsmen.nonStriker;
+          innings.currentBatsmen.nonStriker = temp;
+        }
+        break;
+      case 'RETIRE_BATSMAN':
+        {
+          const { batsmanId, newPlayerId } = action;
+          const oldBatter = innings.battingPerformance.find(p => p.playerId === batsmanId);
+          const newBatter = innings.battingPerformance.find(p => p.playerId === newPlayerId);
+          if (oldBatter && newBatter && newBatter.howOut === 'did_not_bat') {
+            oldBatter.howOut = 'retired';
+            newBatter.howOut = 'batting';
+            if (innings.currentBatsmen.striker === batsmanId) {
+              innings.currentBatsmen.striker = newPlayerId;
+            } else if (innings.currentBatsmen.nonStriker === batsmanId) {
+              innings.currentBatsmen.nonStriker = newPlayerId;
+            }
+            innings.currentPartnership = {
+              batters: [innings.currentBatsmen.striker, innings.currentBatsmen.nonStriker].filter(Boolean),
+              runs: 0,
+              balls: 0,
+              extras: 0
+            };
+          }
+        }
+        break;
+      case 'TOGGLE_POWERPLAY':
+        innings.powerplayActive = !innings.powerplayActive;
+        break;
+      case 'START_INNINGS2':
+        if (state.status === 'innings_break' && state.innings.length >= 2) {
+          state.status = 'innings2';
+          state.currentInnings = 2;
+        }
         break;
       default:
         break;
@@ -298,6 +348,10 @@ export class HundredScoringEngine {
       bowler.ballsBowled += 1;
       innings.balls += 1;
       innings.currentSetBalls += 1;
+      
+      if (innings.balls >= 25) {
+        innings.powerplayActive = false;
+      }
       
       if (bowlerRunsConceded === 0 && !isWicket) {
         bowler.dots += 1;
@@ -397,6 +451,7 @@ export class HundredScoringEngine {
 
     if (gfxMsg) {
       state.gfxMessage = gfxMsg;
+      state.gfxMessageId = (state.gfxMessageId || 0) + 1;
       state.psdLayers.boundaryAlert = runsAdded === 4 || runsAdded === 6;
       state.psdLayers.wicketAlert = isWicket;
       state.psdLayers.milestoneAlert = batter.runs >= 50 && (batter.runs - batterRuns < 50 || batter.runs - batterRuns < 100);

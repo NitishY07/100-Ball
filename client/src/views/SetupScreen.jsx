@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { UploadCloud } from 'lucide-react';
 
 const DEFAULT_SQUAD_A = [
   { id: 'A1', name: 'James Vince', role: 'Batter' },
@@ -35,14 +36,56 @@ export function SetupScreen({ sendAction }) {
   const [teamAName, setTeamAName] = useState('Southern Brave');
   const [teamAShort, setTeamAShort] = useState('SOB');
   const [teamAColor, setTeamAColor] = useState('#1c3c54');
+  const [teamALogo, setTeamALogo] = useState('');
   const [teamBName, setTeamBName] = useState('Trent Rockets');
   const [teamBShort, setTeamBShort] = useState('TRT');
   const [teamBColor, setTeamBColor] = useState('#ffcc00');
+  const [teamBLogo, setTeamBLogo] = useState('');
   const [tossWonBy, setTossWonBy] = useState('teamA');
   const [tossDecision, setTossDecision] = useState('bat');
 
   const [squadA, setSquadA] = useState(DEFAULT_SQUAD_A);
   const [squadB, setSquadB] = useState(DEFAULT_SQUAD_B);
+
+  const [uploadingA, setUploadingA] = useState(false);
+  const [uploadingB, setUploadingB] = useState(false);
+
+  const handleFileUpload = async (team, file) => {
+    if (!file) return;
+    
+    const setUploading = team === 'A' ? setUploadingA : setUploadingB;
+    const setLogo = team === 'A' ? setTeamALogo : setTeamBLogo;
+    
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target.result;
+        const res = await fetch('http://localhost:5000/api/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            base64Data
+          })
+        });
+        const data = await res.json();
+        if (data.url) {
+          setLogo(data.url);
+        } else {
+          alert('Upload failed: ' + (data.error || 'Unknown error'));
+        }
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      alert('Upload failed');
+      setUploading(false);
+    }
+  };
 
   const handlePlayerNameChange = (team, index, name) => {
     if (team === 'A') {
@@ -66,15 +109,18 @@ export function SetupScreen({ sendAction }) {
         teamAName,
         teamAShort,
         teamAColor,
+        teamALogo,
         teamBName,
         teamBShort,
         teamBColor,
+        teamBLogo,
         tossWonBy,
         tossDecision,
         teamASquad: squadA,
         teamBSquad: squadB
       }
     });
+    window.location.hash = '/scorer';
   };
 
   return (
@@ -175,6 +221,29 @@ export function SetupScreen({ sendAction }) {
                 </div>
               </div>
 
+              <div>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Logo URL</label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input 
+                    type="text" 
+                    value={teamALogo} 
+                    placeholder="https://example.com/logo.png"
+                    onChange={e => setTeamALogo(e.target.value)}
+                    style={{ flex: 1, padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'white' }}
+                  />
+                  <label className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.5rem 0.75rem', fontSize: '0.85rem', cursor: 'pointer', margin: 0, height: '38px', boxSizing: 'border-box' }}>
+                    <UploadCloud size={16} />
+                    {uploadingA ? '...' : 'Upload'}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={e => handleFileUpload('A', e.target.files[0])}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+              </div>
+
               <div style={{ marginTop: '1rem' }}>
                 <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Squad List (11 Players)</h4>
                 <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.25rem', paddingRight: '0.5rem' }}>
@@ -226,6 +295,29 @@ export function SetupScreen({ sendAction }) {
                     onChange={e => setTeamBColor(e.target.value)}
                     style={{ width: '100%', height: '38px', padding: '0', border: 'none', background: 'transparent', cursor: 'pointer' }}
                   />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Logo URL</label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input 
+                    type="text" 
+                    value={teamBLogo} 
+                    placeholder="https://example.com/logo.png"
+                    onChange={e => setTeamBLogo(e.target.value)}
+                    style={{ flex: 1, padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'white' }}
+                  />
+                  <label className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.5rem 0.75rem', fontSize: '0.85rem', cursor: 'pointer', margin: 0, height: '38px', boxSizing: 'border-box' }}>
+                    <UploadCloud size={16} />
+                    {uploadingB ? '...' : 'Upload'}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={e => handleFileUpload('B', e.target.files[0])}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
                 </div>
               </div>
 
