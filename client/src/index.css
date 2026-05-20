@@ -1,0 +1,723 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;700;800;900&display=swap');
+
+/* Global Reset & Base */
+:root {
+  /* Default Theme (Navy & Neon Blue) */
+  --bg-primary: #0a0f1d;
+  --bg-secondary: #131b31;
+  --bg-card: rgba(20, 30, 55, 0.6);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --accent: #2563eb;
+  --accent-light: #60a5fa;
+  --accent-glow: rgba(37, 99, 235, 0.35);
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --gold: #fbbf24;
+
+  /* Font Families */
+  --font-display: 'Outfit', 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Layout */
+  --sidebar-width: 280px;
+  --header-height: 70px;
+  
+  /* Transitions */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Theme Presets */
+.theme-sob { /* Southern Brave */
+  --bg-primary: #0b1a13;
+  --bg-secondary: #122c20;
+  --bg-card: rgba(18, 44, 32, 0.6);
+  --accent: #00ff87;
+  --accent-light: #5effab;
+  --accent-glow: rgba(0, 255, 135, 0.25);
+}
+
+.theme-trt { /* Trent Rockets */
+  --bg-primary: #1c1503;
+  --bg-secondary: #302405;
+  --bg-card: rgba(48, 36, 5, 0.6);
+  --accent: #ffcc00;
+  --accent-light: #ffe066;
+  --accent-glow: rgba(255, 204, 0, 0.25);
+}
+
+.theme-wef { /* Welsh Fire */
+  --bg-primary: #1c0508;
+  --bg-secondary: #330c12;
+  --bg-card: rgba(51, 12, 18, 0.6);
+  --accent: #ff1f44;
+  --accent-light: #ff6b82;
+  --accent-glow: rgba(255, 31, 68, 0.25);
+}
+
+.theme-ovi { /* Oval Invincibles */
+  --bg-primary: #04161a;
+  --bg-secondary: #0c2b33;
+  --bg-card: rgba(12, 43, 51, 0.6);
+  --accent: #00c2cb;
+  --accent-light: #4ff3fc;
+  --accent-glow: rgba(0, 194, 203, 0.25);
+}
+
+.theme-bip { /* Birmingham Phoenix */
+  --bg-primary: #1c0903;
+  --bg-secondary: #331309;
+  --bg-card: rgba(51, 19, 9, 0.6);
+  --accent: #ff5a00;
+  --accent-light: #ff8e4d;
+  --accent-glow: rgba(255, 90, 0, 0.25);
+}
+
+.theme-los { /* London Spirit */
+  --bg-primary: #060e1d;
+  --bg-secondary: #101c36;
+  --bg-card: rgba(16, 28, 54, 0.6);
+  --accent: #1e40af;
+  --accent-light: #60a5fa;
+  --accent-glow: rgba(30, 64, 175, 0.25);
+}
+
+.theme-mno { /* Manchester Originals */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1f1f1f;
+  --bg-card: rgba(31, 31, 31, 0.6);
+  --accent: #ffffff;
+  --accent-light: #f3f4f6;
+  --accent-glow: rgba(255, 255, 255, 0.2);
+}
+
+.theme-nos { /* Northern Superchargers */
+  --bg-primary: #0f051c;
+  --bg-secondary: #1e0d33;
+  --bg-card: rgba(30, 13, 51, 0.6);
+  --accent: #7c3aed;
+  --accent-light: #a78bfa;
+  --accent-glow: rgba(124, 58, 237, 0.25);
+}
+
+.light-mode {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --accent: #2563eb;
+  --accent-glow: rgba(37, 99, 235, 0.15);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Glassmorphism Classes */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+.glass-hover {
+  transition: var(--transition-smooth);
+}
+.glass-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3), 0 0 15px var(--accent-glow);
+}
+
+/* UI Layouts */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: fixed;
+  height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo {
+  font-size: 2.2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: var(--font-display);
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition-smooth);
+  cursor: pointer;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link.active {
+  border-left: 4px solid var(--accent);
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-bounce);
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+.btn-primary:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+.btn-danger:hover {
+  transform: scale(1.03);
+}
+
+/* Scorer Panel Specifics */
+.scorer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.scoring-board {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.scoreboard-header {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.score-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.score-main {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.balls-display {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.match-meta-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.8rem;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.batsman-box, .bowler-box {
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+}
+
+.active-striker {
+  border: 1px solid var(--accent);
+  box-shadow: inset 0 0 10px var(--accent-glow);
+}
+
+.runs-pad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.btn-run {
+  font-size: 1.5rem;
+  font-weight: 800;
+  height: 60px;
+  border-radius: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-bounce);
+}
+.btn-run:hover {
+  background: var(--accent);
+  transform: scale(1.05);
+}
+.btn-run.boundary {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--success);
+  color: var(--success);
+}
+.btn-run.boundary:hover {
+  background: var(--success);
+  color: #fff;
+}
+
+.extras-pad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.btn-extra {
+  font-weight: 600;
+  height: 50px;
+  border-radius: 0.5rem;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+.btn-extra:hover {
+  background: var(--warning);
+  color: #000;
+}
+
+.btn-wicket {
+  height: 50px;
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-weight: 700;
+  cursor: pointer;
+  grid-column: span 2;
+  transition: var(--transition-smooth);
+}
+.btn-wicket:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* Charts / Data Presentation */
+.chart-container {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  height: 320px;
+  position: relative;
+}
+
+.wagon-wheel-gfx {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255,255,255,0.2);
+  margin: 0 auto;
+  position: relative;
+  background: radial-gradient(circle, #1a3322 0%, #0d1a11 100%);
+  overflow: hidden;
+}
+
+.pitch-rect {
+  position: absolute;
+  top: 25%;
+  left: 45%;
+  width: 10%;
+  height: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: #a18262;
+}
+
+.wagon-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 2px;
+  transform-origin: 0 50%;
+  animation: drawLine 0.8s ease-out forwards;
+}
+
+@keyframes drawLine {
+  from { width: 0; }
+}
+
+/* --- BROADCAST GRAPHICS OVERLAYS --- */
+/* Designed to overlay live streams with transparent chroma key backgrounds */
+.broadcast-gfx-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  pointer-events: none; /* Let clicks pass through to video underneath */
+  z-index: 9999;
+  font-family: var(--font-display);
+}
+
+.broadcast-gfx-canvas.overlay-preview {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  background: radial-gradient(circle, #0e1e12 0%, #000 100%);
+  border: 4px solid #334155;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  pointer-events: auto;
+}
+
+.scale-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: top left;
+}
+
+/* TV Score Bug */
+.tv-scorebug {
+  position: absolute;
+  top: 50px;
+  left: 80px;
+  display: flex;
+  align-items: stretch;
+  height: 60px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  animation: slideInLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bug-team {
+  background: var(--accent);
+  color: #fff;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  font-size: 1.8rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.bug-score {
+  background: #000;
+  color: #fff;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  font-size: 2.2rem;
+  border-right: 2px solid rgba(255,255,255,0.1);
+}
+
+.bug-balls {
+  background: #111;
+  color: var(--accent-light);
+  padding: 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+}
+
+.bug-balls span {
+  font-size: 1.6rem;
+  color: #fff;
+  line-height: 1;
+}
+
+.bug-batsmen {
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.bug-batsman {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bug-batsman.striking {
+  color: var(--accent-light);
+}
+
+.bug-batsman.striking::after {
+  content: '★';
+  font-size: 0.8rem;
+  color: var(--accent-light);
+}
+
+.bug-powerplay {
+  background: var(--warning);
+  color: #000;
+  padding: 0 1rem;
+  font-size: 1rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+  animation: pulse 1s infinite alternate;
+}
+
+/* TV Lower Third */
+.tv-lowerthird {
+  position: absolute;
+  bottom: 80px;
+  left: 240px;
+  width: 1440px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 20, 40, 0.85) 100%);
+  backdrop-filter: blur(10px);
+  border-left: 8px solid var(--accent);
+  padding: 1.5rem 2.5rem;
+  border-radius: 4px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  color: #fff;
+  animation: slideInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.lt-title {
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-light);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.lt-main {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+/* Full Screen TV Cards */
+.tv-card-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 900px;
+  background: rgba(5, 10, 25, 0.95);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--border-color);
+  border-top: 8px solid var(--accent);
+  border-radius: 8px;
+  padding: 3rem;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+  animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Animations */
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes zoomIn {
+  from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+.alert-gfx-banner {
+  position: absolute;
+  top: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1.5rem 4rem;
+  font-size: 4rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  border-radius: 4px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+  animation: alertEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+}
+
+.alert-four {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: 4px solid #34d399;
+}
+
+.alert-six {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: white;
+  border: 4px solid #a78bfa;
+}
+
+.alert-wicket {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: 4px solid #f87171;
+}
+
+@keyframes alertEnter {
+  0% { transform: translateX(-50%) scale(0.6) rotate(-5deg); opacity: 0; }
+  70% { transform: translateX(-50%) scale(1.1) rotate(2deg); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1) rotate(0deg); }
+}
+
+/* Timeline Components */
+.timeline-list {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+.timeline-ball {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  background: #334155;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.timeline-ball.six { background: #7c3aed; }
+.timeline-ball.four { background: #10b981; }
+.timeline-ball.wicket { background: #ef4444; }
+.timeline-ball.extra { background: #f59e0b; color: #000; }
+
+/* Responsive Utility Classes */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 80px;
+    padding: 2rem 0.5rem;
+  }
+  .sidebar .nav-link span {
+    display: none;
+  }
+  .main-content {
+    margin-left: 80px;
+  }
+  .scorer-grid {
+    grid-template-columns: 1fr;
+  }
+}

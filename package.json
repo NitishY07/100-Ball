@@ -1,0 +1,13 @@
+{
+  "name": "hundred-cricket-gfx-root",
+  "version": "1.0.0",
+  "description": "Root package runner for The Hundred Cricket Scoring and Broadcast Graphics System",
+  "scripts": {
+    "server": "npm run start --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
