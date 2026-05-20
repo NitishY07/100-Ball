@@ -9,21 +9,20 @@ import { Tv, Award, PlayCircle, BarChart3, Settings, ShieldAlert } from 'lucide-
 
 export default function App() {
   const { matchState, connected, sendAction, triggerGfxAction, undo, redo, reset } = useMatchState();
-  const [path, setPath] = useState(window.location.pathname);
+  const [path, setPath] = useState(window.location.hash.slice(1) || '/');
 
-  // Sync pathname on navigation
+  // Sync path on hash change
   useEffect(() => {
-    const handleLocationChange = () => {
-      setPath(window.location.pathname);
+    const handleHashChange = () => {
+      setPath(window.location.hash.slice(1) || '/');
     };
 
-    window.addEventListener('popstate', handleLocationChange);
-    return () => window.removeEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const navigate = (newPath) => {
-    window.history.pushState({}, '', newPath);
-    setPath(newPath);
+    window.location.hash = newPath;
   };
 
   if (!connected) {
@@ -124,14 +123,14 @@ export default function App() {
 
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <button 
-            onClick={() => window.open('/overlay', '_blank')}
+            onClick={() => window.open('/#/overlay', '_blank')}
             className="btn btn-secondary" 
             style={{ width: '100%', fontSize: '0.85rem' }}
           >
             <Tv size={14} /> Open Live GFX
           </button>
           <button 
-            onClick={() => window.open('/public', '_blank')}
+            onClick={() => window.open('/#/public', '_blank')}
             className="btn btn-secondary" 
             style={{ width: '100%', fontSize: '0.85rem' }}
           >
