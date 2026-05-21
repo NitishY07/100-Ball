@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Layers, Sparkles, Image, Tv, CheckCircle, Save, UploadCloud } from 'lucide-react';
 
@@ -27,7 +28,7 @@ export function OperatorPanel({ matchState, triggerGfxAction }) {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const base64Data = e.target.result;
-        const res = await fetch('http://localhost:5000/api/upload', {
+        const res = await fetch('${API_URL}/api/upload', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

@@ -1,7 +1,8 @@
+import { API_URL } from '../config';
 import { useState, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
 
-const SERVER_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+const SERVER_URL = API_URL;
 
 export function useMatchState() {
   const [matchState, setMatchState] = useState(null);

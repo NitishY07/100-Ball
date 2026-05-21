@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Play, Calendar, MapPin, Activity, CheckCircle, HelpCircle } from 'lucide-react';
 
@@ -23,7 +24,7 @@ export function DashboardView({ onMatchActivated }) {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/matches');
+      const res = await fetch('${API_URL}/api/matches');
       if (!res.ok) throw new Error('Failed to fetch matches');
       const data = await res.json();
       setMatches(data);
@@ -40,7 +41,7 @@ export function DashboardView({ onMatchActivated }) {
     e.preventDefault();
     try {
       // 1. Create the match
-      const createRes = await fetch('http://localhost:5000/api/matches', {
+      const createRes = await fetch('${API_URL}/api/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -62,7 +63,7 @@ export function DashboardView({ onMatchActivated }) {
 
   const handleActivateMatch = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/matches/${id}/activate`, {
+      const res = await fetch(`${API_URL}/api/matches/${id}/activate`, {
         method: 'POST'
       });
       if (!res.ok) throw new Error('Failed to activate match');
@@ -84,7 +85,7 @@ export function DashboardView({ onMatchActivated }) {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:5000/api/matches/${id}`, {
+      const res = await fetch(`${API_URL}/api/matches/${id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete match');
