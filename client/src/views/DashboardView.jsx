@@ -31,7 +31,7 @@ export function DashboardView({ onMatchActivated }) {
       setError(null);
     } catch (err) {
       console.error(err);
-      setError('Could not connect to the API server. Make sure it is running on port 5000.');
+      setError(`Could not connect to the API server at ${API_URL}. Please ensure the backend is running.`);
     } finally {
       setLoading(false);
     }
